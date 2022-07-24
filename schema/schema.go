@@ -1,4 +1,4 @@
 package schema
 
-type Schema struct {
+type Schema interface {
 }

@@ -2,24 +2,23 @@ package schema_test
 
 import (
     "fmt"
+    "regexp"
 
     "github.com/wolkenwalze/wolkenwalze-plugin-sdk-go/schema"
 )
 
-func ExampleListType() {
-    t := schema.List[string](schema.String())
+func ExamplePattern() {
+    t := schema.Pattern()
+    val := "^[a-z]+$"
 
-    var val interface{}
-    val = []string{
-        "Hello world!",
-    }
-
-    v, err := t.Unserialize(val, "val")
+    var v *regexp.Regexp
+    var err error
+    v, err = t.Unserialize(val, "val")
     if err != nil {
         panic(err)
     }
 
-    if err := t.Validate(v, "val"); err != nil {
+    if err := t.Validate(v); err != nil {
         panic(err)
     }
 
@@ -28,5 +27,5 @@ func ExampleListType() {
         panic(err)
     }
     fmt.Printf("%v", serialized)
-    // Output: [Hello world!]
+    // Output: ^[a-z]+$
 }

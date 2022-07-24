@@ -1,31 +1,33 @@
 package schema
 
-import "fmt"
+import (
+    "fmt"
+    "reflect"
+)
 
-func NewStringEnum[T ~string](
+func Enum[T ~string | ~int](
     name string,
     values ...T,
 ) EnumType[T] {
     rawValues := make(map[T]interface{}, len(values))
+    t := reflect.TypeOf(values).Elem()
+    var convertFunc func(input T) interface{}
+    switch t.Kind() {
+    case reflect.String:
+        convertFunc = func(input T) interface{} {
+            return reflect.ValueOf(input).String()
+        }
+    case reflect.Int:
+        convertFunc = func(input T) interface{} {
+            return int(reflect.ValueOf(input).Int())
+        }
+    default:
+        panic(fmt.Errorf("unsupported kind: %v", t.Kind()))
+    }
     for _, v := range values {
-        rawValues[v] = string(v)
+        rawValues[v] = convertFunc(v)
     }
-    return enumType[T]{
-        name:      name,
-        values:    values,
-        rawValues: rawValues,
-    }
-}
-
-func NewIntEnum[T ~int](
-    name string,
-    values ...T,
-) EnumType[T] {
-    rawValues := make(map[T]interface{}, len(values))
-    for _, v := range values {
-        rawValues[v] = int(v)
-    }
-    return enumType[T]{
+    return &enumType[T]{
         name:      name,
         values:    values,
         rawValues: rawValues,

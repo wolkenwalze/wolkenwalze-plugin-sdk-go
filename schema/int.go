@@ -5,16 +5,48 @@ import (
     "strconv"
 )
 
-type IntType struct {
-    Min *int
-    Max *int
+func Int() IntType {
+    return &intType{}
 }
 
-func (i IntType) TypeID() TypeID {
+type IntType interface {
+    Type[int]
+
+    Min() *int
+    Max() *int
+
+    WithMin(min int) IntType
+    WithMax(max int) IntType
+}
+
+type intType struct {
+    min *int
+    max *int
+}
+
+func (i intType) Min() *int {
+    return i.min
+}
+
+func (i intType) Max() *int {
+    return i.max
+}
+
+func (i *intType) WithMin(min int) IntType {
+    i.min = &min
+    return i
+}
+
+func (i *intType) WithMax(max int) IntType {
+    i.max = &max
+    return i
+}
+
+func (i intType) TypeID() TypeID {
     return TypeIDInt
 }
 
-func (i IntType) Unserialize(data interface{}, path ...string) (result int, err error) {
+func (i intType) Unserialize(data interface{}, path ...string) (result int, err error) {
     switch d := data.(type) {
     case string:
         result, err = strconv.Atoi(d)
@@ -52,22 +84,22 @@ func (i IntType) Unserialize(data interface{}, path ...string) (result int, err 
     return result, i.Validate(result, path...)
 }
 
-func (i IntType) Validate(data int, path ...string) error {
-    if i.Min != nil && data < *i.Min {
+func (i intType) Validate(data int, path ...string) error {
+    if i.min != nil && data < *i.min {
         return ErrConstraint{
             Path:    path,
-            Message: fmt.Sprintf("must be at least %d", *i.Min),
+            Message: fmt.Sprintf("must be at least %d", *i.min),
         }
     }
-    if i.Max != nil && data > *i.Max {
+    if i.max != nil && data > *i.max {
         return ErrConstraint{
             Path:    path,
-            Message: fmt.Sprintf("must be at most %d", *i.Min),
+            Message: fmt.Sprintf("must be at most %d", *i.min),
         }
     }
     return nil
 }
 
-func (i IntType) Serialize(data int, path ...string) (interface{}, error) {
+func (i intType) Serialize(data int, path ...string) (interface{}, error) {
     return data, i.Validate(data)
 }

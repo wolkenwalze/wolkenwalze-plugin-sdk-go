@@ -7,7 +7,7 @@ import (
 )
 
 func ExampleIntType() {
-    t := schema.IntType{}
+    t := schema.Int()
     val := 42
     v, err := t.Unserialize(val, "val")
     if err != nil {

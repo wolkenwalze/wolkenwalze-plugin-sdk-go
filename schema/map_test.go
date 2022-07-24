@@ -10,10 +10,10 @@ func ExampleMapType() {
     val := map[string]int{
         "test": 5,
     }
-    t := schema.MapType[string, int]{
-        Keys:   schema.StringType{},
-        Values: schema.IntType{},
-    }
+    t := schema.Map[string, int](
+        schema.String(),
+        schema.Int(),
+    )
 
     v, err := t.Unserialize(val, "val")
     if err != nil {

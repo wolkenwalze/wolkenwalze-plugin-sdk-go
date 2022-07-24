@@ -51,3 +51,30 @@ type Type[T any] interface {
     Validate(data T, path ...string) error
     Serialize(data T, path ...string) (interface{}, error)
 }
+
+func AnyType[T any](t Type[T]) Type[any] {
+    return &typeWrapper[T]{
+        t: t,
+    }
+}
+
+type typeWrapper[T any] struct {
+    t Type[T]
+}
+
+func (t typeWrapper[T]) TypeID() TypeID {
+    return t.t.TypeID()
+}
+
+func (t typeWrapper[T]) Unserialize(data interface{}, path ...string) (any, error) {
+    result, err := t.t.Unserialize(data, path...)
+    return result, err
+}
+
+func (t typeWrapper[T]) Validate(data any, path ...string) error {
+    return t.t.Validate(data.(T), path...)
+}
+
+func (t typeWrapper[T]) Serialize(data any, path ...string) (interface{}, error) {
+    return t.t.Serialize(data.(T), path...)
+}

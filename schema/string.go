@@ -5,17 +5,63 @@ import (
     "regexp"
 )
 
-type StringType struct {
-    MinLength *int
-    MaxLength *int
-    Pattern   *regexp.Regexp
+func String() StringType {
+    return &stringType{}
 }
 
-func (s StringType) TypeID() TypeID {
+type StringType interface {
+    Type[string]
+
+    MinLength() *int
+    MaxLength() *int
+    Pattern() *regexp.Regexp
+
+    WithMinLength(int) StringType
+    WithMaxLength(int) StringType
+    WithPattern(regexp2 *regexp.Regexp) StringType
+}
+
+type stringType struct {
+    minLength *int
+    maxLength *int
+    pattern   *regexp.Regexp
+}
+
+func (s *stringType) MinLength() *int {
+    return s.minLength
+}
+
+func (s *stringType) MaxLength() *int {
+    return s.maxLength
+}
+
+func (s *stringType) Pattern() *regexp.Regexp {
+    return s.pattern
+}
+
+func (s *stringType) WithMinLength(min int) StringType {
+    s.minLength = &min
+    return s
+}
+
+func (s *stringType) WithMaxLength(max int) StringType {
+    s.maxLength = &max
+    return s
+}
+
+func (s *stringType) WithPattern(re *regexp.Regexp) StringType {
+    if re == nil {
+        panic(fmt.Errorf("nil parameter passed to StringType.WithPattern()"))
+    }
+    s.pattern = re
+    return s
+}
+
+func (s stringType) TypeID() TypeID {
     return TypeIDString
 }
 
-func (s StringType) Unserialize(data interface{}, path ...string) (result string, err error) {
+func (s stringType) Unserialize(data interface{}, path ...string) (result string, err error) {
     switch d := data.(type) {
     case string:
         result = d
@@ -46,28 +92,28 @@ func (s StringType) Unserialize(data interface{}, path ...string) (result string
     return result, s.Validate(result, path...)
 }
 
-func (s StringType) Validate(data string, path ...string) error {
-    if s.MinLength != nil && len(data) < *s.MinLength {
+func (s stringType) Validate(data string, path ...string) error {
+    if s.minLength != nil && len(data) < *s.minLength {
         return ErrConstraint{
             Path:    path,
-            Message: fmt.Sprintf("string must be at least %d characters, %d given", *s.MinLength, len(data)),
+            Message: fmt.Sprintf("string must be at least %d characters, %d given", *s.minLength, len(data)),
         }
     }
-    if s.MaxLength != nil && len(data) > *s.MaxLength {
+    if s.maxLength != nil && len(data) > *s.maxLength {
         return ErrConstraint{
             Path:    path,
-            Message: fmt.Sprintf("string must be at most %d characters, %d given", *s.MinLength, len(data)),
+            Message: fmt.Sprintf("string must be at most %d characters, %d given", *s.maxLength, len(data)),
         }
     }
-    if s.Pattern != nil && !s.Pattern.MatchString(data) {
+    if s.pattern != nil && !s.pattern.MatchString(data) {
         return ErrConstraint{
             Path:    path,
-            Message: fmt.Sprintf("string must match pattern %s", s.Pattern.String()),
+            Message: fmt.Sprintf("string must match pattern %s", s.pattern.String()),
         }
     }
     return nil
 }
 
-func (s StringType) Serialize(data string, path ...string) (interface{}, error) {
+func (s stringType) Serialize(data string, path ...string) (interface{}, error) {
     return data, s.Validate(data, path...)
 }

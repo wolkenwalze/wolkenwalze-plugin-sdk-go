@@ -5,14 +5,22 @@ import (
     "regexp"
 )
 
-type PatternType struct {
+func Pattern() PatternType {
+    return &patternType{}
 }
 
-func (p PatternType) TypeID() TypeID {
+type PatternType interface {
+    Type[*regexp.Regexp]
+}
+
+type patternType struct {
+}
+
+func (p patternType) TypeID() TypeID {
     return TypeIDPattern
 }
 
-func (p PatternType) Unserialize(data interface{}, path ...string) (*regexp.Regexp, error) {
+func (p patternType) Unserialize(data interface{}, path ...string) (*regexp.Regexp, error) {
     switch d := data.(type) {
     case string:
         re, err := regexp.Compile(d)
@@ -32,7 +40,7 @@ func (p PatternType) Unserialize(data interface{}, path ...string) (*regexp.Rege
     }
 }
 
-func (p PatternType) Validate(data *regexp.Regexp, path ...string) error {
+func (p patternType) Validate(data *regexp.Regexp, path ...string) error {
     if data == nil {
         return ErrConstraint{
             Path:    path,
@@ -42,7 +50,7 @@ func (p PatternType) Validate(data *regexp.Regexp, path ...string) error {
     return nil
 }
 
-func (p PatternType) Serialize(data *regexp.Regexp, path ...string) (interface{}, error) {
+func (p patternType) Serialize(data *regexp.Regexp, path ...string) (interface{}, error) {
     if data == nil {
         return nil, ErrConstraint{
             Path:    path,
